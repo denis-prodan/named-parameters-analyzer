@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -8,16 +9,15 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace NamedParametersAnalyzer
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class NamedParametersAnalyzerAnalyzer : DiagnosticAnalyzer
+    public class NamedParametersAnalyzer : DiagnosticAnalyzer
     {
         private const int ParamsThreshold = 4;
-        public const string DiagnosticId = "NamedParametersAnalyzer";
+        public const string DiagnosticId = "NP001";
+        private const string AnalyzerErrorDiagnosticId = "NP000";
 
-        private static readonly string Title =
-            $"Method calls with {ParamsThreshold} or more parameters should be named";
+        private static readonly string Title = $"Method calls with {ParamsThreshold} or more parameters should be named";
 
-        public static readonly string MessageFormat =
-            $"Method calls with {ParamsThreshold} or more parameters have param names";
+        public static readonly string MessageFormat = $"Method calls with {ParamsThreshold} or more parameters have param names";
 
         private static readonly string Description = "Check that calls with many parameters has their names";
         private const string Category = "Naming";
@@ -31,14 +31,40 @@ namespace NamedParametersAnalyzer
             isEnabledByDefault: true,
             description: Description);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+        private static readonly DiagnosticDescriptor AnalyzerErrorDescriptor = new DiagnosticDescriptor(
+            id: AnalyzerErrorDiagnosticId,
+            title: "NamedParametersAnalyzer throws unhandled exception",
+            messageFormat: "Analyzer failed with exception: {0}",
+            category: Category,
+            defaultSeverity: DiagnosticSeverity.Info,
+            isEnabledByDefault: true,
+            description: "Inner exception inside analyzer. Please, contact author with details");
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule, AnalyzerErrorDescriptor);
 
         public override void Initialize(AnalysisContext context)
         {
             context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKind.InvocationExpression, SyntaxKind.ObjectCreationExpression);
         }
 
-        private void AnalyzeNode(SyntaxNodeAnalysisContext nodeContext)
+        private static void SafeAnalyze(SyntaxNodeAnalysisContext context)
+        {
+            try
+            {
+                AnalyzeNode(context);
+            }
+            catch (Exception e)
+            {
+                var diagnostic = Diagnostic.Create(
+                    descriptor: AnalyzerErrorDescriptor,
+                    location: context.Node.GetLocation(),
+                    messageArgs: e.ToString());
+
+                context.ReportDiagnostic(diagnostic);
+            }
+        }
+
+        private static void AnalyzeNode(SyntaxNodeAnalysisContext nodeContext)
         {
             var argumentsList = GetArgumentsList(nodeContext.Node);
             if (argumentsList == null || argumentsList.Arguments.Count < ParamsThreshold)
@@ -56,7 +82,7 @@ namespace NamedParametersAnalyzer
             nodeContext.ReportDiagnostic(diagnostic);
         }
 
-        private ArgumentListSyntax GetArgumentsList(SyntaxNode node)
+        private static ArgumentListSyntax GetArgumentsList(SyntaxNode node)
         {
             switch (node)
             {

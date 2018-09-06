@@ -15,12 +15,12 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace NamedParametersAnalyzer
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(NamedParametersAnalyzerCodeFixProvider)), Shared]
-    public class NamedParametersAnalyzerCodeFixProvider : CodeFixProvider
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(NamedParametersCodeFixProvider)), Shared]
+    public class NamedParametersCodeFixProvider : CodeFixProvider
     {
         private const string Title = "Add parameter name(s)";
 
-        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(NamedParametersAnalyzerAnalyzer.DiagnosticId);
+        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(NamedParametersAnalyzer.DiagnosticId);
 
         public sealed override FixAllProvider GetFixAllProvider()
         {

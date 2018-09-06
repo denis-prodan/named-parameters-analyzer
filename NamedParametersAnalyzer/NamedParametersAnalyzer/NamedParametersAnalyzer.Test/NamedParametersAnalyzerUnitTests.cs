@@ -56,8 +56,8 @@ namespace ConsoleApplication1
             var test = GetCode(call);
             var expected = new DiagnosticResult
             {
-                Id = NamedParametersAnalyzerAnalyzer.DiagnosticId,
-                Message = NamedParametersAnalyzerAnalyzer.MessageFormat,
+                Id = NamedParametersAnalyzer.DiagnosticId,
+                Message = NamedParametersAnalyzer.MessageFormat,
                 Severity = DiagnosticSeverity.Warning,
                 Locations =
                     new[] { new DiagnosticResultLocation("Test0.cs", 15, 13) }
@@ -71,13 +71,13 @@ namespace ConsoleApplication1
         {
             var call = @"
         {
-            this(""param1"", param2: ""param2"", param3: ""param3"", param4: ""param4"");
+            TypeName(""param1"", param2: ""param2"", param3: ""param3"", param4: ""param4"");
         }";
             var test = GetCode(call);
             var expected = new DiagnosticResult
             {
-                Id = NamedParametersAnalyzerAnalyzer.DiagnosticId,
-                Message = NamedParametersAnalyzerAnalyzer.MessageFormat,
+                Id = NamedParametersAnalyzer.DiagnosticId,
+                Message = NamedParametersAnalyzer.MessageFormat,
                 Severity = DiagnosticSeverity.Warning,
                 Locations =
                     new[] { new DiagnosticResultLocation("Test0.cs", 15, 13) }
@@ -88,12 +88,12 @@ namespace ConsoleApplication1
         [TestMethod]
         public void ExpressionBodied()
         {
-            var call = @" => this(""param1"", param2: ""param2"", param3: ""param3"", param4: ""param4"");";
+            var call = @" => TypeName(""param1"", param2: ""param2"", param3: ""param3"", param4: ""param4"");";
             var test = GetCode(call);
             var expected = new DiagnosticResult
             {
-                Id = NamedParametersAnalyzerAnalyzer.DiagnosticId,
-                Message = NamedParametersAnalyzerAnalyzer.MessageFormat,
+                Id = NamedParametersAnalyzer.DiagnosticId,
+                Message = NamedParametersAnalyzer.MessageFormat,
                 Severity = DiagnosticSeverity.Warning,
                 Locations =
                     new[] { new DiagnosticResultLocation("Test0.cs", 13, 30) }
@@ -116,12 +116,12 @@ namespace ConsoleApplication1
 
         protected override CodeFixProvider GetCSharpCodeFixProvider()
         {
-            return new NamedParametersAnalyzerCodeFixProvider();
+            return new NamedParametersCodeFixProvider();
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
-            return new NamedParametersAnalyzerAnalyzer();
+            return new NamedParametersAnalyzer();
         }
 
         private string GetCode(string callToTest) => string.Format(code, callToTest);
